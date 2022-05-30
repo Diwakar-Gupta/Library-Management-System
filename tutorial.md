@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from lms.models import BookItem
 
-librarian, _ = Group.objects.get_or_create(name='librarian')
+librarian, _ = Group.objects.get_or_create(name='Librarian')
 
 book_item = ContentType.objects.get_for_model(BookItem)
 
@@ -24,3 +24,7 @@ for codename, name, content_type in librarian_permissions:
                         content_type=content_type)
     librarian.permissions.add(permission)
 ```
+
+### Rest Api
+https://www.django-rest-framework.org/api-guide/generic-views/#generic-views
+
