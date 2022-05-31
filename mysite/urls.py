@@ -15,8 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+from rest_framework.authtoken import views
 
 urlpatterns = [
     path('', include('lms.urls')),
     path('admin/', admin.site.urls),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('api/token/generate/', views.obtain_auth_token),
 ]
