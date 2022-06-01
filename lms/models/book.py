@@ -1,6 +1,5 @@
 from django.db import models
 from lms.models.account import AccountStatus
-from django.db import transaction
 
 
 class Book(models.Model):
@@ -83,26 +82,6 @@ class BookItem(models.Model):
     def return_book_item(self):
         # TODO
         return False
-
-    @classmethod
-    def check_out(cls, account, book_item, due_date):
-        from lms.models import BookLending, BookReservation, ReservationStatus
-        
-        with transaction.atomic():
-            book_lend = BookLending(account=account, book_item=book_item, due_date=due_date)
-            book_lend.save()
-            account.issued_book_count += 1
-            account.save()
-            book_item.borrowed = book_lend.creation_date
-            book_item.due_date = book_lend.due_date
-            book_item.status = BookStatus.Issued
-            book_item.save()
-            
-            reservs = BookReservation.objects.filter(book=book_item.book, account=account).all()
-            for reserv in reservs:
-                reserv.status = ReservationStatus.Completed
-                reserv.save()
-            return book_lend.pk
     
     def is_reserved(self):
         return self.status == BookStatus.Reserved

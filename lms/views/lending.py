@@ -1,12 +1,16 @@
+import datetime
+
 from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
 
 from lms.models import BookLending
-from lms.models.account import Account
-from lms.models.book import BookItem
+from lms.models import Account
+from lms.models import BookItem
 
 from rest_framework import generics, mixins, serializers
+from rest_framework.response import Response
 
 
 class LendingPermissionDenied(PermissionDenied):
@@ -39,11 +43,19 @@ class BookItemSerializer(serializers.ModelSerializer):
 class BookLendingSerializer(serializers.ModelSerializer):
     account = AccountSerializer(many=False)
     book_item = BookItemSerializer(many=False)
+    fine =  serializers.SerializerMethodField('get_fine')
 
     class Meta:
         model = BookLending
-        fields = ['account', 'book_item', 'creation_date', 'due_date']
+        fields = ['account', 'book_item', 'creation_date', 'due_date', 'return_date', 'fine']
 
+    def get_fine(self, lending):
+        if not lending.return_date:
+            return -1
+        if hasattr(lending, 'fine'):
+            return lending.fine.amount
+        else:
+            return 0
 
 class LendingListBase(generics.ListAPIView):
     
@@ -95,12 +107,34 @@ class LendingDetail(mixins.RetrieveModelMixin,
     def account(self):
         return self.request.user.account
 
+    @cached_property
+    def lending(self):
+        lending = get_object_or_404(BookLending, return_date=None, book_item__barcode = self.kwargs[self.lookup_field])
+        if Account.can_see_lendings(self.request.user) or lending.account == self.account:
+            return lending
+        else:
+            raise Http404()
+
     def get_object(self):
-        lending = get_object_or_404(BookLending, account=self.account, book_item__barcode = self.kwargs[self.lookup_field])
-        return lending
+        return self.lending
     
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
-    # def post(self, request, *args, **kwargs):
-    #     pass
+    def form(self):
+        form_data = self.request.POST.dict()
+
+        return form_data
+    
+    def form_valid(self, form):
+        return_date = datetime.datetime.now().date()
+        self.lending.return_book_item(return_date)
+
+        serializer = self.serializer_class(self.lending, many=False)
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        if not Account.can_return(request.user):
+            return HttpResponseForbidden('Do you want me to ban you.')
+
+        return self.form_valid(self.form())

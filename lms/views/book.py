@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework import authentication
 
 from lms.models import Book, BookItem, BookStatus, BookLending
-from lms.models import ReservationStatus, BookReservation, BookReservationFormat
 from lms.models import Account
 from lms.models import LibraryConfig
 
@@ -127,19 +126,18 @@ class BookIssue(generics.GenericAPIView):
         form_data['account'] = get_object_or_404(Account, id=form_data['account'])
         form_data['book_item'] = get_object_or_404(BookItem, barcode=form_data['book_item'])
         form_data['bypass_issue_quota'] in ['true', 'True']
-        
-        if form_data['due_date']:
-            form_data['due_date'] = datetime.datetime.strptime(form_data['due_date'], "%d%m%Y").date()
-        else:
-            max_day = LibraryConfig.object().maximum_day_limit
-            form_data['due_date'] = datetime.datetime.now().date() + datetime.timedelta(days=max_day)
 
         return form_data
     
     def form_valid(self, form):
         book_item = form['book_item']
         account = form['account']
-        due_date = form['due_date']
+        if form['due_date']:
+            due_date = datetime.datetime.strptime(form['due_date'], "%d%m%Y").date()
+        else:
+            max_day = LibraryConfig.object().maximum_day_limit
+            due_date = datetime.datetime.now().date() + datetime.timedelta(days=max_day)
+            
         bypass_issue_quota = form['bypass_issue_quota']
 
         if not account.is_active():
@@ -154,13 +152,15 @@ class BookIssue(generics.GenericAPIView):
         if not book_item.can_be_issued():
             return JsonResponse({'error':'Book item cannot be Issued'}, status=400)
 
-        pk = book_item.check_out(account, book_item, due_date)
-        
-        return JsonResponse({'message': 'Issuing complete', 'pk': pk}, status=200)
+        book_lend = BookLending.check_out(account, book_item, due_date)
+        from lms.views.lending import BookLendingSerializer
+
+        serializer = BookLendingSerializer(book_lend, many=False)
+        return Response(serializer.data)        
 
     def post(self, request, *args, **kwargs):
         if not Account.can_checkout(request.user):
-            return HttpResponseForbidden()
+            return HttpResponseForbidden('Do you want me to ban you.')
 
         return self.form_valid(self.form)
 

@@ -4,15 +4,14 @@ from lms.models import BookLending
 
 class Fine(models.Model):
     amount = models.PositiveIntegerField()
-    lending = models.ForeignKey(BookLending, on_delete=models.CASCADE)
+    lending = models.OneToOneField(BookLending, on_delete=models.CASCADE)
 
     def get_amount(self):
         return self.amount
 
 
 class FineTransaction(models.Model):
-    fine = models.ForeignKey(Fine, on_delete=models.CASCADE)
-    creation_date = models.DateTimeField(null=True)
+    creation_date = models.DateTimeField()
     amount = models.PositiveIntegerField()
 
 

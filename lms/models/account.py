@@ -29,7 +29,8 @@ class Account(models.Model):
     
     def get_name(self):
         return self.user.get_full_name()
-        
+    
+
     @cached_property
     def is_librarian(user):
         return user.groups.filter(name='Librarian').exists()
@@ -50,6 +51,13 @@ class Account(models.Model):
         return self.status == AccountStatus.Active
 
     def remaining_issue_count(self):
-        return 0
-        # return LibraryConfig.object().maximum_book_issue_limit - self.issued_book_count
+        from lms.models import LibraryConfig
+        
+        return LibraryConfig.object().maximum_book_issue_limit - self.issued_book_count
 
+    def recalculate_issued_book_count(self):
+        from lms.models.action import BookLending
+
+        self.issued_book_count = BookLending.objects.filter(account=self, return_date=None).count()
+        self.save()
+        return self.issued_book_count
