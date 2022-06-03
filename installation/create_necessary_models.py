@@ -1,6 +1,6 @@
 from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
-from lms.models import BookItem, BookLending
+from lms.models import BookItem, BookLending, LibraryConfig
 
 def create_librarian_group():
     librarian, _ = Group.objects.get_or_create(name='Librarian')
@@ -20,19 +20,11 @@ def create_librarian_group():
     librarian.permissions.add(view_booklending)
     return librarian
 
-librarian = create_librarian_group()
+_ = create_librarian_group()
 
-raju, _ = User.objects.get_or_create(username='librarianRaju', first_name='Raju')
-raju.set_password('Raju')
-raju.save()
-
-abrar, _ = User.objects.get_or_create(username='abrar', first_name='Abrar')
-abrar.set_password('abrar')
-abrar.save()
-
-atul, _ = User.objects.get_or_create(username='atul', first_name='Atul')
-atul.set_password('atul')
-atul.save()
-
-librarian.user_set.add(raju)
-
+obj, created = LibraryConfig.objects.get_or_create(pk=1)
+if created:
+    obj.maximum_book_issue_limit = 3
+    obj.maximum_day_limit = 10
+    obj.fine_per_late_day = 10
+    obj.save()
