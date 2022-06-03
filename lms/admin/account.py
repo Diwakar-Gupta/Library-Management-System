@@ -8,6 +8,7 @@ class AccountAdmin(admin.ModelAdmin):
     readonly_fields = ['issued_book_count']
     actions = ('recalculate_issued_count',)
     list_display = ['id', 'name', 'status']
+    list_filter = ("status", )
     actions_on_top = True
 
     def name(self, account):

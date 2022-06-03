@@ -12,6 +12,8 @@ from lms.models import BookItem
 from rest_framework import generics, mixins, serializers
 from rest_framework.response import Response
 
+from lms.views.utils import AccountMixin
+
 
 class LendingPermissionDenied(PermissionDenied):
     def __init__(self, lend):
@@ -47,7 +49,7 @@ class BookLendingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookLending
-        fields = ['account', 'book_item', 'creation_date', 'due_date', 'return_date', 'fine']
+        fields = ['pk', 'account', 'book_item', 'creation_date', 'due_date', 'return_date', 'fine']
 
     def get_fine(self, lending):
         if not lending.return_date:
@@ -57,15 +59,12 @@ class BookLendingSerializer(serializers.ModelSerializer):
         else:
             return 0
 
-class LendingListBase(generics.ListAPIView):
-    
-    @cached_property
-    def account(self):
-        return self.request.user.account
+
+class LendingListBase(AccountMixin, generics.ListAPIView):
 
     def get_queryset(self):
         # all lending that logged in user can see
-        if Account.can_see_lendings(self.request.user):
+        if Account.can_see_all_lendings(self.request.user):
             queryset = BookLending.objects.all()
         else:
             queryset = BookLending.objects.filter(account=self.account)
@@ -96,28 +95,22 @@ class AllUserLendings(LendingListBase):
         return BookLendingSerializer
 
 
-class LendingDetail(mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin,
-                    generics.GenericAPIView):
+class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
 
     lookup_field = 'barcode'
     serializer_class = BookLendingSerializer
 
     @cached_property
-    def account(self):
-        return self.request.user.account
-
-    @cached_property
     def lending(self):
         lending = get_object_or_404(BookLending, return_date=None, book_item__barcode = self.kwargs[self.lookup_field])
-        if Account.can_see_lendings(self.request.user) or lending.account == self.account:
+        if self.account.can_see_lending(lending):
             return lending
         else:
             raise Http404()
 
     def get_object(self):
         return self.lending
-    
+
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
@@ -138,3 +131,22 @@ class LendingDetail(mixins.RetrieveModelMixin,
             return HttpResponseForbidden('Do you want me to ban you.')
 
         return self.form_valid(self.form())
+
+
+class LendingDetail(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
+
+    lookup_field = 'pk'
+    serializer_class = BookLendingSerializer
+
+    def get_object(self):
+        lending = get_object_or_404(BookLending, pk=self.kwargs['pk'])
+        if lending.account == self.account:
+            return lending
+        elif self.account.can_see_lending(lending):
+            return lending
+        else:
+            raise HttpResponseForbidden()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+

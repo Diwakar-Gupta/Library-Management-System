@@ -43,8 +43,14 @@ class Account(models.Model):
     def can_checkout(cls, user):
         return user.has_perm('lms.can_checkout_book_item')
     
+    def can_see_lending(self, lending):
+        if self.user.has_perm('lms.view_booklending'):
+            return True
+        else:
+            return lending.account == self
+    
     @classmethod
-    def can_see_lendings(cls, user):
+    def can_see_all_lendings(cls, user):
         return user.has_perm('lms.view_booklending')
     
     def is_active(self):

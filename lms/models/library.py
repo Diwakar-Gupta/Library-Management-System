@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.functional import cached_property
 
 
 class LibraryConfig(models.Model):
@@ -8,7 +7,6 @@ class LibraryConfig(models.Model):
     fine_per_late_day = models.PositiveSmallIntegerField(default=10)
 
     @classmethod
-    @cached_property
     def object(cls):
         return cls._default_manager.all().first() # Since only one item
 

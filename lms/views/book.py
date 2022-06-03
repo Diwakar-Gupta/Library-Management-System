@@ -15,19 +15,13 @@ from rest_framework import authentication
 from lms.models import Book, BookItem, BookStatus, BookLending
 from lms.models import Account
 from lms.models import LibraryConfig
+from .utils import AccountMixin
 
 
-class BookMixin(object):
+class BookMixin(AccountMixin, object):
     model = Book
     lookup_field = 'isbn'
     
-    @cached_property
-    def account(self):
-        if not self.request.user.is_authenticated:
-            return None
-        return self.request.user.account
-    
-
     def get_object(self):
         if hasattr(self, 'queryset'):
             queryset = self.queryset
@@ -144,7 +138,7 @@ class BookIssue(generics.GenericAPIView):
             return JsonResponse({'error':'Account not Active'}, status=400)
 
         if bypass_issue_quota == False and account.remaining_issue_count() <= 0:
-            return JsonResponse({'error':'Max BookIssue limit exceed'}, status=400)
+            return JsonResponse({'error':'The user has already checked-out maximum number of books'}, status=400)
 
         if book_item.is_reserved():
             return JsonResponse({'error':'Book item is reserved'}, status=400)
