@@ -1,1 +1,1 @@
-from . import book, lending
+from . import book, lending, reservation

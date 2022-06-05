@@ -2,7 +2,7 @@ import datetime
 
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseForbidden
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 
 from lms.models import BookLending
@@ -11,6 +11,7 @@ from lms.models import BookItem
 
 from rest_framework import generics, mixins, serializers
 from rest_framework.response import Response
+from rest_framework import status
 
 from lms.views.utils import AccountMixin
 
@@ -93,6 +94,13 @@ class AllUserLendings(LendingListBase):
     
     def get_serializer_class(self):
         return BookLendingSerializer
+    
+    def get(self, request, *args, **kwargs):
+        if self.lookup_field not in kwargs:
+            if self.account == None:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            return redirect('/lendings/user/{}/'.format(self.account.id))
+        return super(AllUserLendings, self).get(request, *args, **kwargs)
 
 
 class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
@@ -145,7 +153,7 @@ class LendingDetail(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPI
         elif self.account.can_see_lending(lending):
             return lending
         else:
-            raise HttpResponseForbidden()
+            raise PermissionDenied()
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)

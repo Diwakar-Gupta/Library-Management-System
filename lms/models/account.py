@@ -32,6 +32,13 @@ class Account(models.Model):
     def get_email(self):
         return self.user.email
 
+    @classmethod
+    def can_reserve_book_for_others(self, user):
+        return user.has_perm('lms.can_reserve_for_others')
+    
+    def can_reserve_for_own(self):
+        return self.status == AccountStatus.Active
+
     @cached_property
     def is_librarian(user):
         return user.groups.filter(name='Librarian').exists()
@@ -45,10 +52,20 @@ class Account(models.Model):
         return user.has_perm('lms.can_checkout_book_item')
     
     def can_see_lending(self, lending):
-        if self.user.has_perm('lms.view_booklending'):
+        if lending.account == self:
             return True
         else:
-            return lending.account == self
+            return Account.can_see_all_lendings(self.user)
+    
+    def can_see_reservation(self, reservation):
+        if reservation.account == self:
+            return True
+        else:
+            return Account.can_see_all_reservations(self.user)
+    
+    @classmethod
+    def can_see_all_reservations(self, user):
+        return user.has_perm('lms.view_bookreservation')
     
     @classmethod
     def can_see_all_lendings(cls, user):

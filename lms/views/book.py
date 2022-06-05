@@ -16,6 +16,7 @@ from rest_framework import status
 from lms.models import Book, BookItem, BookStatus, BookLending
 from lms.models import Account
 from lms.models import LibraryConfig
+from lms.models.action import BookReservation
 from .utils import AccountMixin
 
 
@@ -159,3 +160,44 @@ class BookIssue(generics.GenericAPIView):
 
         return self.form_valid(self.form)
 
+
+class BookItemReservation(AccountMixin, generics.GenericAPIView):
+
+    permission_classes = []
+
+    @cached_property
+    def form(self):
+        form_data = self.request.POST.dict()
+
+        form_data['account'] = get_object_or_404(Account, id=form_data['account'])
+        form_data['book_item'] = get_object_or_404(BookItem, barcode=form_data['book_item'])
+
+        return form_data
+    
+    def form_valid(self, form):
+        book_item = form['book_item']
+        account = form['account']
+
+        can, mess = book_item.can_be_reserved()
+        if not can:
+            return JsonResponse({'error': mess}, status=status.HTTP_400_BAD_REQUEST)
+
+        if account == self.account and not self.account.can_reserve_for_own():
+            return HttpResponseForbidden("Can't reserve for own")
+        
+        if account != self.account and not Account.can_reserve_book_for_others(self.request.user):
+            return HttpResponseForbidden("Can't reserve book")
+
+        if book_item.is_reserved():
+            return JsonResponse({'error':'Book item is reserved'}, status=400)
+
+        book_reserve = BookReservation.reserve_book_item(account, book_item)
+        from lms.views.reservation import BookReservationSerializer
+
+        serializer = BookReservationSerializer(book_reserve, many=False)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def post(self, request, *args, **kwargs):
+        if Account.can_reserve_book_for_others(request.user) or (self.account != None and self.account.can_reserve_for_own()):
+            return self.form_valid(self.form)
+        return HttpResponseForbidden('Do you want me to ban you.')

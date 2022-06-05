@@ -28,18 +28,11 @@ class BookListTest(DummyDataMixin, TestCase):
         response = view(request)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_book_detail_noauth(self):
-        view = book.BookDetail.as_view()
-
-        request = self.factory.get('/book/')
-        response = view(request, **{'isbn': '453678754'})
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    
     def test_book_detail_auth(self):
-        view = book.BookDetail.as_view()
+        response = self.client.get('/book/453678754/')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         self.client.force_login(self.student)
-
         response = self.client.get('/book/453678754/')
         assert response.status_code == status.HTTP_200_OK
     
@@ -60,7 +53,7 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123',
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book/453678754/issue/', data=post_data)
+        response = self.client.post('/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_201_CREATED
     
     def test_book_issue_by_student(self):
@@ -72,10 +65,10 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123',
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book/453678754/issue/', data=post_data)
+        response = self.client.post('/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_403_FORBIDDEN
     
-    def test_book_issue_invalid_date(self):
+    def test_book_issue_invalid_data(self):
 
         self.client.force_login(self.librarian)
 
@@ -84,6 +77,6 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123-1',
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book/453678754/issue/', data=post_data)
+        response = self.client.post('/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
     

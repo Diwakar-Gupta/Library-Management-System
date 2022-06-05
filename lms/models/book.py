@@ -79,13 +79,18 @@ class BookItem(models.Model):
         else:
             self.booklending_set.get(return_date=None)
 
-    def return_book_item(self):
-        # TODO
-        return False
-    
+    def can_be_reserved(self):
+        if self.is_reference_only:
+            return False, 'Reference only Book'
+        if self.status == BookStatus.Reserved:
+            return False, 'Already Reserved'
+        if self.status == BookStatus.Reserved:
+            return False, 'Book has Lost status'
+        return True, ''
+
     def is_reserved(self):
         return self.status == BookStatus.Reserved
-    
+
     def can_be_issued(self):
         return not self.is_reference_only and self.status == BookStatus.Available
 
