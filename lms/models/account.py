@@ -19,7 +19,6 @@ class Account(models.Model):
         choices=AccountStatus.choices,
         blank=True
     )
-    email = models.EmailField()
     issued_book_count = models.PositiveIntegerField(default=0)
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True) # Validators should be a list
@@ -30,6 +29,8 @@ class Account(models.Model):
     def get_name(self):
         return self.user.get_full_name()
     
+    def get_email(self):
+        return self.user.email
 
     @cached_property
     def is_librarian(user):

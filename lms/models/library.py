@@ -8,10 +8,14 @@ class LibraryConfig(models.Model):
 
     @classmethod
     def object(cls):
-        return cls._default_manager.all().first() # Since only one item
+        obj, _ = cls.objects.get_or_create(pk=1) # Since only one item
+        return obj
 
     def save(self, *args, **kwargs):
-        if self.pk != LibraryConfig.object.pk:
-            return
-        return super().save(*args, **kwargs)
+        if hasattr(self, 'pk'):
+            assert self.pk == 1
+            return super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        pass
 

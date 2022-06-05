@@ -13,3 +13,6 @@ https://www.django-rest-framework.org/tutorial/3-class-based-views/
 #### Dummy Data
 Create dummy data by running contents of file create_data.py in shell
 
+#### Test Suit
+https://zerotobyte.com/django-multiple-databases-setup/
+

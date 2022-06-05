@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import mixins, generics, serializers
 from rest_framework.response import Response
 from rest_framework import authentication
+from rest_framework import status
 
 from lms.models import Book, BookItem, BookStatus, BookLending
 from lms.models import Account
@@ -119,20 +120,20 @@ class BookIssue(generics.GenericAPIView):
 
         form_data['account'] = get_object_or_404(Account, id=form_data['account'])
         form_data['book_item'] = get_object_or_404(BookItem, barcode=form_data['book_item'])
-        form_data['bypass_issue_quota'] in ['true', 'True']
+        form_data['bypass_issue_quota'] = form_data['bypass_issue_quota'] in ['true', 'True']
 
         return form_data
     
     def form_valid(self, form):
         book_item = form['book_item']
         account = form['account']
-        if form['due_date']:
+        bypass_issue_quota = form['bypass_issue_quota']
+            
+        if hasattr(form, 'due_date'):
             due_date = datetime.datetime.strptime(form['due_date'], "%d%m%Y").date()
         else:
             max_day = LibraryConfig.object().maximum_day_limit
             due_date = datetime.datetime.now().date() + datetime.timedelta(days=max_day)
-            
-        bypass_issue_quota = form['bypass_issue_quota']
 
         if not account.is_active():
             return JsonResponse({'error':'Account not Active'}, status=400)
@@ -150,7 +151,7 @@ class BookIssue(generics.GenericAPIView):
         from lms.views.lending import BookLendingSerializer
 
         serializer = BookLendingSerializer(book_lend, many=False)
-        return Response(serializer.data)        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def post(self, request, *args, **kwargs):
         if not Account.can_checkout(request.user):

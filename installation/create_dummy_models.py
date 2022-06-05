@@ -5,7 +5,7 @@ from lms.models import BookItem, BookLending
 
 librarian = Group.objects.get(name='Librarian')
 
-raju, _ = User.objects.get_or_create(username='librarianRaju', first_name='Raju')
+raju, _ = User.objects.get_or_create(username='librarian', first_name='Raju')
 raju.set_password('Raju')
 raju.save()
 librarian.user_set.add(raju)

@@ -2,6 +2,9 @@ from django.contrib.auth.models import Group, Permission, User
 from django.contrib.contenttypes.models import ContentType
 from lms.models import BookItem, BookLending, LibraryConfig
 
+
+LibraryConfig.object()
+
 def create_librarian_group():
     librarian, _ = Group.objects.get_or_create(name='Librarian')
     book_item = ContentType.objects.get_for_model(BookItem)
@@ -28,3 +31,4 @@ if created:
     obj.maximum_day_limit = 10
     obj.fine_per_late_day = 10
     obj.save()
+

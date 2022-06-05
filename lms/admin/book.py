@@ -7,4 +7,3 @@ class BookItemAdmin(admin.ModelAdmin):
     list_display = ['barcode', 'status']
     list_filter = ("status", )
 
-
