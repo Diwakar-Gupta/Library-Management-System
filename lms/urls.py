@@ -10,8 +10,7 @@ urlpatterns = [
     ])),
 
     path('book-item/', include([
-        # path(''),
-        # path('<str:barcode>/'),
+        path('', book.BookItems.as_view(), name='book_item_list'),
         path('issue/', book.BookIssue.as_view(), name='book_issue'),
         path('reserve/', book.BookItemReservation.as_view(), name='book_reservation')
     ])),
@@ -19,9 +18,9 @@ urlpatterns = [
     path('lendings/', include([
         path('', lending.AllLendings.as_view(), name='lendings_list'),
         path('<int:pk>/', lending.LendingDetail.as_view(), name='lendings_detail'),
+        path('barcode/<str:barcode>/', lending.LendingBarcode.as_view(), name='lendings_return'),
         path('user/', lending.AllUserLendings.as_view(), name='my_lendings_list'),
         path('user/<int:id>/', lending.AllUserLendings.as_view(), name='user_lendings_list'),
-        path('barcode/<str:barcode>/', lending.LendingBarcode.as_view(), name='lendings_return'),
     ])),
 
     path('reservations/', include([

@@ -34,6 +34,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 class BookItemSerializer(serializers.ModelSerializer):
     title = serializers.SerializerMethodField('get_title')
+    format = serializers.CharField(source='get_format_display')
     
     class Meta:
         model = BookItem
@@ -75,12 +76,32 @@ class LendingListBase(AccountMixin, generics.ListAPIView):
 
 class AllLendings(LendingListBase):
     
+    filter_fields = (
+        'account__id',
+        'book_item__barcode',
+    )
+    ordering_fields = [
+        'creation_date',
+        'due_date',
+        'return_date',
+    ]
+
     def get_serializer_class(self):
         return BookLendingSerializer
 
 
 class AllUserLendings(LendingListBase):
     lookup_field = 'id'
+
+    filter_fields = (
+        'account__id',
+        'book_item__barcode',
+    )
+    ordering_fields = [
+        'creation_date',
+        'due_date',
+        'return_date',
+    ]
 
     @cached_property
     def query_account(self):

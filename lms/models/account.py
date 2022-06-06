@@ -57,6 +57,13 @@ class Account(models.Model):
         else:
             return Account.can_see_all_lendings(self.user)
     
+    @classmethod
+    def can_see_books(self, user):
+        if user.has_perm('lms.view_book'):
+            return True
+        elif hasattr(user, 'account'):
+            return user.account.status == AccountStatus.Active
+    
     def can_see_reservation(self, reservation):
         if reservation.account == self:
             return True

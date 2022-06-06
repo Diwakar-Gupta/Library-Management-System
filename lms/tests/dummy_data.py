@@ -13,11 +13,13 @@ class DummyDataMixin(object):
 
         def create_librarian_group():
             librarian, _ = Group.objects.get_or_create(name='Librarian')
+            book = ContentType.objects.get_for_model(Book)
             book_item = ContentType.objects.get_for_model(BookItem)
             book_lending = ContentType.objects.get_for_model(BookLending)
             book_reservation = ContentType.objects.get_for_model(BookReservation)
 
             librarian_permissions = [
+                ('view_book', 'Can view book', book),
                 ('can_checkout_book_item', 'Can CheckOut Book Item', book_item),
                 ('can_issue_book_item', 'Can Give Book Item', book_item),
                 ('can_reserve_for_others', "Can Reserve Book Item for other's", book_reservation),

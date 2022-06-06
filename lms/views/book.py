@@ -1,16 +1,11 @@
-import json
 import datetime
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import transaction
-from django.http import Http404, JsonResponse, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import Http404, JsonResponse, HttpResponseForbidden
 from django.utils.functional import cached_property
 from django.shortcuts import get_object_or_404
 
 from rest_framework import mixins, generics, serializers
 from rest_framework.response import Response
-from rest_framework import authentication
 from rest_framework import status
 
 from lms.models import Book, BookItem, BookStatus, BookLending
@@ -35,7 +30,7 @@ class BookMixin(AccountMixin, object):
             self.lookup_field: self.kwargs[self.lookup_field]
         }
         book = get_object_or_404(queryset, **filter)  # Lookup the object
-        if not book.is_accessible_by(self.account):
+        if not book.is_accessible_by(self.request.user):
             raise Http404()
         return book
 
@@ -86,10 +81,24 @@ class LibrarianBookSerializer(serializers.HyperlinkedModelSerializer):
 class BookListView(generics.ListCreateAPIView):
     serializer_class = UserBookSerializer
     permission_classes = []
+    filter_fields = (
+        'isbn',
+        'language',
+        'publisher',
+        'subject',
+    )
+    search_fields = [
+        '$title',
+    ]
+    ordering_fields = [
+        'numer_of_pages',
+    ]
 
     def get_queryset(self):
-        # TODO: filter for books that can be seen by this user
-        return Book.objects.all()
+        if Account.can_see_books(self.request.user):
+            return Book.objects.all()
+        else:
+            raise Http404
     
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
@@ -201,3 +210,34 @@ class BookItemReservation(AccountMixin, generics.GenericAPIView):
         if Account.can_reserve_book_for_others(request.user) or (self.account != None and self.account.can_reserve_for_own()):
             return self.form_valid(self.form)
         return HttpResponseForbidden('Do you want me to ban you.')
+
+
+class BookItemSerializer(serializers.ModelSerializer):
+    title = serializers.SerializerMethodField('get_title')
+    format = serializers.CharField(source='get_format_display')
+    status = serializers.CharField(source='get_status_display')
+    
+    class Meta:
+        model = BookItem
+        fields = ['barcode', 'title', 'format', 'is_reference_only', 'status', 'due_date', 'placed_at']
+    
+    def get_title(self, book_item):
+        return book_item.get_title()
+
+
+class BookItems(generics.ListAPIView):
+    name = 'book-item-list'
+    filter_fields = (
+        'format',
+        'status',
+        'is_reference_only',
+        'book__isbn',
+    )
+    ordering_fields = []
+
+    def get_queryset(self):
+        return BookItem.objects.all()
+    
+    def get_serializer_class(self):
+        return BookItemSerializer
+

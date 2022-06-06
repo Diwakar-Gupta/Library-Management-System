@@ -37,6 +37,7 @@ class BookItemSerializer(serializers.ModelSerializer):
 class BookReservationSerializer(serializers.ModelSerializer):
     account = AccountSerializer(many=False)
     book_item = BookItemSerializer(many=False)
+    status = serializers.CharField(source='get_status_display')
 
     class Meta:
         model = BookReservation
@@ -57,6 +58,15 @@ class ReservationListBase(AccountMixin, generics.ListAPIView):
 
 class AllReservations(ReservationListBase):
     
+    filter_fields = (
+        'book_item__barcode',
+        'account__id',
+        'status',
+    )
+    ordering_fields = [
+        'creation_date',
+    ]
+
     def get_serializer_class(self):
         return BookReservationSerializer
 

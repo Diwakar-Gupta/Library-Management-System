@@ -16,3 +16,6 @@ Create dummy data by running contents of file create_data.py in shell
 #### Test Suit
 https://zerotobyte.com/django-multiple-databases-setup/
 
+#### filter ListView
+https://www.geeksforgeeks.org/filter-data-in-django-rest-framework/
+

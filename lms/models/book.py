@@ -16,15 +16,19 @@ class Book(models.Model):
     def get_title(self):
         return self.title
     
-    def is_accessible_by(self, account):
-        if account is None:
-            return False
-        return account.status == AccountStatus.Active
+    def is_accessible_by(self, user):
+        if user.has_perm('lms.view_book'):
+            return True
+        elif hasattr(user, 'account'):
+            return user.account.status == AccountStatus.Active
 
 
 class Rack(models.Model):
     number = models.PositiveIntegerField(verbose_name='Number')
     location_identifier = models.CharField(max_length=12, verbose_name='Location Identifier')
+
+    def __str__(self):
+        return "{} {}".format(self.location_identifier, self.number)
 
 
 class BookFormat(models.TextChoices):
