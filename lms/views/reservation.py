@@ -14,6 +14,7 @@ from rest_framework.response import Response
 
 class AccountSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField('get_name')
+    status = serializers.CharField(source='get_status_display')
     
     class Meta:
         model = Account
@@ -25,6 +26,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 class BookItemSerializer(serializers.ModelSerializer):
     title = serializers.SerializerMethodField('get_title')
+    format = serializers.CharField(source='get_format_display')
     
     class Meta:
         model = BookItem

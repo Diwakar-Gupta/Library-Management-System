@@ -111,7 +111,7 @@ class BookLending(models.Model):
         return fine_amt
 
     def get_fine(self):
-        if self.fine:
+        if hasattr(self, 'fine'):
             return self.fine.amount
         else:
             return 0

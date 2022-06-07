@@ -108,7 +108,13 @@ class AllUserLendings(LendingListBase):
         account = get_object_or_404(Account, id=self.kwargs[self.lookup_field])
         return account
 
+    @cached_property
+    def is_own(self):
+        return self.account == self.query_account
+
     def get_queryset(self):
+        if not Account.can_see_all_lendings(self.request.user) and not self.is_own:
+            raise PermissionDenied()
         queryset = super(AllUserLendings, self).get_queryset()
         queryset = queryset.filter(account = self.query_account)
         return queryset
@@ -132,10 +138,12 @@ class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAP
     @cached_property
     def lending(self):
         lending = get_object_or_404(BookLending, return_date=None, book_item__barcode = self.kwargs[self.lookup_field])
-        if self.account.can_see_lending(lending):
+        if Account.can_see_all_lendings(self.request.user):
+            return lending
+        elif self.account != None and self.account.can_see_lending(lending):
             return lending
         else:
-            raise Http404()
+            raise PermissionDenied()
 
     def get_object(self):
         return self.lending

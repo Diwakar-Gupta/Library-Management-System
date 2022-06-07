@@ -39,7 +39,6 @@ class Account(models.Model):
     def can_reserve_for_own(self):
         return self.status == AccountStatus.Active
 
-    @cached_property
     def is_librarian(user):
         return user.groups.filter(name='Librarian').exists()
 

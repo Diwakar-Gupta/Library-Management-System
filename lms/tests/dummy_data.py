@@ -22,6 +22,7 @@ class DummyDataMixin(object):
                 ('view_book', 'Can view book', book),
                 ('can_checkout_book_item', 'Can CheckOut Book Item', book_item),
                 ('can_issue_book_item', 'Can Give Book Item', book_item),
+                ('can_return_book_item', 'Can Return Book Item', book_item),
                 ('can_reserve_for_others', "Can Reserve Book Item for other's", book_reservation),
                 ('change_bookreservation', 'Can change book reservation', book_reservation),
                 ('view_bookreservation', 'Can view book reservation', book_reservation),
@@ -49,7 +50,6 @@ class DummyDataMixin(object):
         raju.set_password('Raju')
         raju.save()
         librarian.user_set.add(raju)
-        Account.objects.create(id=20, user=raju, status=AccountStatus.Active, phone_number='+91898989899')
 
         abrar, _ = User.objects.get_or_create(username='abrar', first_name='Abrar')
         abrar.set_password('abrar')
@@ -70,3 +70,4 @@ class DummyDataMixin(object):
         
         BookItem.objects.create(book=book1, barcode='barcode123', is_reference_only=False, price=100, date_of_purchase=datetime.now().date(), placed_at=Rack.objects.create(number=9, location_identifier='RL'))
         BookItem.objects.create(book=book1, barcode='barcode123-1', is_reference_only=True, price=100, date_of_purchase=datetime.now().date(), placed_at=Rack.objects.create(number=9, location_identifier='RQ'))
+
