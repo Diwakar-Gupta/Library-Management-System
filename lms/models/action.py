@@ -1,5 +1,6 @@
 from django.db import models
 from django.db import transaction
+from django.shortcuts import resolve_url
 from lms.models import Book, BookItem, BookStatus
 from lms.models import Account
 from lms.models import LibraryConfig
@@ -36,6 +37,9 @@ class BookReservation(models.Model):
         default=ReservationStatus.Waiting,
     )
 
+    def get_absolute_url(self):
+        return resolve_url('reservations_detail', pk=self.pk)
+
     def get_status(self):
         return self.status
     
@@ -69,6 +73,9 @@ class BookLending(models.Model):
     
     def __str__(self):
         return self.book_item.barcode
+    
+    def get_absolute_url(self):
+        return resolve_url('lendings_detail', pk=self.pk)
     
     @classmethod
     def check_out(cls, account, book_item, due_date):

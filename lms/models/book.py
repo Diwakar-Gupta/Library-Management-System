@@ -1,4 +1,5 @@
 from django.db import models
+from django.shortcuts import resolve_url
 from lms.models.account import AccountStatus
 
 
@@ -12,6 +13,9 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def get_absolute_url(self):
+        return resolve_url('book_detail', isbn=self.isbn)
 
     def get_title(self):
         return self.title
@@ -74,6 +78,9 @@ class BookItem(models.Model):
                 ('can_renew_book_item', 'Can Renew Book Item'),
             ]
     
+    def get_absolute_url(self):
+        return resolve_url('book_item_list')+'?barcode={}'.format(self.barcode)
+
     def get_title(self):
         return self.book.title
     

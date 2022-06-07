@@ -19,6 +19,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework.authtoken import views
 
 admin.site.site_header = 'LMS Administrator'
+admin.site.site_title = 'LMS site admin'
 
 urlpatterns = [
     path('', include('lms.urls')),

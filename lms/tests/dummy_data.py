@@ -17,6 +17,8 @@ class DummyDataMixin(object):
             book_item = ContentType.objects.get_for_model(BookItem)
             book_lending = ContentType.objects.get_for_model(BookLending)
             book_reservation = ContentType.objects.get_for_model(BookReservation)
+            account = ContentType.objects.get_for_model(Account)
+            libconf = ContentType.objects.get_for_model(LibraryConfig)
 
             librarian_permissions = [
                 ('add_book', 'Can add book', book),
@@ -34,6 +36,12 @@ class DummyDataMixin(object):
                 ('change_bookreservation', 'Can change book reservation', book_reservation),
                 ('view_bookreservation', 'Can view book reservation', book_reservation),
                 ('view_booklending', 'Can view book lending', book_lending),
+                
+                ('add_account', 'Can add account', account),
+                ('change_account', 'Can change account', account),
+                ('view_account', 'Can view account', account),
+
+                ('view_libraryconfig', 'Can view library config', libconf),
             ]
             for codename, name, content_type in librarian_permissions:
                 permission, _ = Permission.objects.get_or_create(

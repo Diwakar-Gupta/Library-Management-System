@@ -1,6 +1,8 @@
+from django.http import JsonResponse
 from django.urls import path, include
 from lms.views import book, lending, reservation
 from . import views
+from django.conf import settings
 
 
 urlpatterns = [
@@ -31,3 +33,24 @@ urlpatterns = [
         path('user/<int:id>/', reservation.AllUserReservations.as_view(), name='user_reservations_list'),
     ])),
 ]
+
+if False and settings.DEBUG:
+    def user_password(request):
+        response = []
+        response.append({
+            'username': 'abrar',
+            'password': 'abrar',
+        })
+        response.append({
+            'username': 'atul',
+            'password': 'atul',
+        })
+        response.append({
+            'username': 'librarian',
+            'password': 'Raju',
+        })
+        return JsonResponse(response, safe=False)
+    
+    urlpatterns.extend([
+        path('', user_password)
+    ])

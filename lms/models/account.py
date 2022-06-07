@@ -91,3 +91,4 @@ class Account(models.Model):
         self.issued_book_count = BookLending.objects.filter(account=self, return_date=None).count()
         self.save()
         return self.issued_book_count
+

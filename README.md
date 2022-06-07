@@ -1,5 +1,7 @@
 https://www.educative.io/courses/grokking-the-object-oriented-design-interview/RMlM3NgjAyR#Use-case-diagram
 
+Live at: https://diwakar.pythonanywhere.com/
+
 ### Rest Api
 https://www.django-rest-framework.org/api-guide/generic-views/#generic-views
 https://www.django-rest-framework.org/tutorial/3-class-based-views/
@@ -18,4 +20,12 @@ https://zerotobyte.com/django-multiple-databases-setup/
 
 #### filter ListView
 https://www.geeksforgeeks.org/filter-data-in-django-rest-framework/
+
+#### Cached System
+
+Cached is stored in:
+1. Database
+2. Filesystem
+3. Memory : kind of bad because not permanent
+
 

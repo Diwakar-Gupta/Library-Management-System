@@ -228,6 +228,7 @@ class BookItemSerializer(serializers.ModelSerializer):
 class BookItems(generics.ListAPIView):
     name = 'book-item-list'
     filter_fields = (
+        'barcode',
         'format',
         'status',
         'is_reference_only',
