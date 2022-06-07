@@ -19,10 +19,17 @@ class DummyDataMixin(object):
             book_reservation = ContentType.objects.get_for_model(BookReservation)
 
             librarian_permissions = [
+                ('add_book', 'Can add book', book),
                 ('view_book', 'Can view book', book),
+                ('change_book', 'Can change book', book),
+                
+                ('add_bookitem', 'Can add book item', book_item),
+                ('change_bookitem', 'Can change book item', book_item),
+                ('view_bookitem', 'Can view book item', book_item),
                 ('can_checkout_book_item', 'Can CheckOut Book Item', book_item),
                 ('can_issue_book_item', 'Can Give Book Item', book_item),
                 ('can_return_book_item', 'Can Return Book Item', book_item),
+
                 ('can_reserve_for_others', "Can Reserve Book Item for other's", book_reservation),
                 ('change_bookreservation', 'Can change book reservation', book_reservation),
                 ('view_bookreservation', 'Can view book reservation', book_reservation),

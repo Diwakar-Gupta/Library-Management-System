@@ -48,7 +48,7 @@ class BookStatus(models.TextChoices):
 class BookItem(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=12, primary_key=True)
-    is_reference_only = models.BooleanField()
+    is_reference_only = models.BooleanField(default=False, help_text="This book can't be issued.")
     borrowed = models.DateField(blank=True, null=True)
     due_date = models.DateField(blank=True, null=True)
     price = models.PositiveIntegerField()

@@ -233,7 +233,9 @@ class BookItems(generics.ListAPIView):
         'is_reference_only',
         'book__isbn',
     )
-    ordering_fields = []
+    ordering_fields = [
+        'due_date'
+    ]
 
     def get_queryset(self):
         return BookItem.objects.all()

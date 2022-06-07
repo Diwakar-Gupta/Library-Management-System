@@ -79,4 +79,4 @@ class BookListTest(DummyDataMixin, TestCase):
             }
         response = self.client.post('/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-    
+
