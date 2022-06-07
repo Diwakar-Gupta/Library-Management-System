@@ -1,17 +1,18 @@
 import datetime
 
-from django.http import Http404, JsonResponse, HttpResponseForbidden
-from django.utils.functional import cached_property
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils.functional import cached_property
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
-from rest_framework import mixins, generics, serializers
-from rest_framework.response import Response
-from rest_framework import status
-
-from lms.models import Book, BookItem, BookStatus, BookLending
-from lms.models import Account
-from lms.models import LibraryConfig
+from lms.models import (Account, Book, BookItem, BookLending, BookStatus,
+                        LibraryConfig)
 from lms.models.action import BookReservation
+
+from rest_framework import generics, mixins, serializers, status
+from rest_framework.response import Response
+
 from .utils import AccountMixin
 
 
@@ -99,6 +100,10 @@ class BookListView(generics.ListCreateAPIView):
             return Book.objects.all()
         else:
             raise Http404
+    
+    @method_decorator(cache_page(60 * 15), name='dispatch')
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
     
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
@@ -243,4 +248,8 @@ class BookItems(generics.ListAPIView):
     
     def get_serializer_class(self):
         return BookItemSerializer
+
+    @method_decorator(cache_page(60 * 15), name='dispatch')
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 

@@ -1,9 +1,8 @@
-from django.http import JsonResponse
-from django.urls import path, include
-from lms.views import book, lending, reservation
-from . import views
 from django.conf import settings
+from django.http import JsonResponse
+from django.urls import include, path
 
+from lms.views import book, lending, reservation
 
 urlpatterns = [
     path('books/', book.BookListView.as_view(), name='book_list'),

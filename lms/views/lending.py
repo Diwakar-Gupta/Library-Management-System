@@ -3,17 +3,16 @@ import datetime
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
+from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control
 
-from lms.models import BookLending
-from lms.models import Account
-from lms.models import BookItem
-
-from rest_framework import generics, mixins, serializers
-from rest_framework.response import Response
-from rest_framework import status
-
+from lms.models import Account, BookItem, BookLending
 from lms.views.utils import AccountMixin
+
+from rest_framework import generics, mixins, serializers, status
+from rest_framework.response import Response
 
 
 class LendingPermissionDenied(PermissionDenied):
@@ -88,6 +87,11 @@ class AllLendings(LendingListBase):
 
     def get_serializer_class(self):
         return BookLendingSerializer
+    
+    # Should be removed if student & librarian has different serializer
+    @method_decorator(cache_page(60 * 15), name='dispatch')
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class AllUserLendings(LendingListBase):
@@ -121,7 +125,8 @@ class AllUserLendings(LendingListBase):
     
     def get_serializer_class(self):
         return BookLendingSerializer
-    
+
+    @method_decorator(cache_control(private=True), name='dispatch')
     def get(self, request, *args, **kwargs):
         if self.lookup_field not in kwargs:
             if self.account == None:

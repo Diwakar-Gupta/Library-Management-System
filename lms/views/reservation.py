@@ -1,7 +1,9 @@
-from django.http import HttpResponseForbidden
-from django.shortcuts import get_object_or_404, redirect
-from django.utils.functional import cached_property
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, redirect
+from django.utils.decorators import method_decorator
+from django.utils.functional import cached_property
+from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control
 
 from lms.models import Account, BookReservation
 from lms.models.action import ReservationStatus
@@ -71,6 +73,11 @@ class AllReservations(ReservationListBase):
 
     def get_serializer_class(self):
         return BookReservationSerializer
+    
+    # Should be removed if student & librarian has different serializer
+    @method_decorator(cache_page(60 * 15), name='dispatch')
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
 class AllUserReservations(ReservationListBase):
@@ -89,6 +96,7 @@ class AllUserReservations(ReservationListBase):
     def get_serializer_class(self):
         return BookReservationSerializer
     
+    @method_decorator(cache_control(private=True), name='dispatch')
     def get(self, request, *args, **kwargs):
         if self.lookup_field not in kwargs:
             if self.account == None:
