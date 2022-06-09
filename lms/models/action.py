@@ -30,11 +30,12 @@ class BookReservation(models.Model):
     #     default=BookReservationFormat.Hardcover,
     # )
     book_item = models.ForeignKey(BookItem, on_delete=models.CASCADE)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(auto_now_add=True, db_index=True)
     status = models.CharField(
         max_length=2,
         choices=ReservationStatus.choices,
         default=ReservationStatus.Waiting,
+        db_index=True
     )
 
     def get_absolute_url(self):
@@ -65,11 +66,11 @@ class BookReservation(models.Model):
 
 
 class BookLending(models.Model):
-    account = models.ForeignKey(Account, blank=False, null=False, on_delete=models.CASCADE)
-    book_item = models.ForeignKey(BookItem, blank=False, null=False, on_delete=models.CASCADE)
-    creation_date = models.DateField(auto_now_add=True)
-    due_date = models.DateField()
-    return_date = models.DateField(blank=True, null=True)
+    account = models.ForeignKey(Account, blank=False, null=False, on_delete=models.CASCADE, db_index=True)
+    book_item = models.ForeignKey(BookItem, blank=False, null=False, on_delete=models.CASCADE, db_index=True)
+    creation_date = models.DateField(auto_now_add=True, db_index=True)
+    due_date = models.DateField(db_index=True)
+    return_date = models.DateField(blank=True, null=True, db_index=True)
     
     def __str__(self):
         return self.book_item.barcode

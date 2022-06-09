@@ -12,14 +12,15 @@ class AccountStatus(models.TextChoices):
         
 
 class Account(models.Model):
-    id = models.PositiveIntegerField(primary_key=True)
+    id = models.PositiveIntegerField(primary_key=True, db_index=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
     status = models.CharField(
         max_length=2,
         choices=AccountStatus.choices,
-        blank=True
+        blank=True,
+        db_index=True
     )
-    issued_book_count = models.PositiveIntegerField(default=0)
+    issued_book_count = models.PositiveIntegerField(default=0, db_index=True)
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
     phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True) # Validators should be a list
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ValidationError
 
 
 class LibraryConfig(models.Model):
@@ -11,11 +12,21 @@ class LibraryConfig(models.Model):
         obj, _ = cls.objects.get_or_create(pk=1) # Since only one item
         return obj
 
+    def clean(self, *args, **kwargs):
+        if hasattr(self, 'pk'):
+            if self.pk != 1:
+                raise ValidationError('Only one instance allowed')
+        
+        return super(LibraryConfig, self).clean(*args, **kwargs)
+
     def save(self, *args, **kwargs):
         if hasattr(self, 'pk'):
-            assert self.pk == 1
+            assert self.pk == 1, "Only one instance allowed"
             return super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
-        pass
+        if self.pk == 1:
+            pass
+        else:
+            return super(LibraryConfig, self).delete(self, *args, **kwargs)
 

@@ -4,7 +4,7 @@ from lms.models.account import AccountStatus
 
 
 class Book(models.Model):
-    isbn = models.CharField(max_length=13, primary_key=True)
+    isbn = models.CharField(max_length=13, primary_key=True, db_index=True)
     title = models.CharField(max_length=100)
     subject = models.CharField(max_length=100)
     publisher = models.CharField(max_length=50)
@@ -50,10 +50,10 @@ class BookStatus(models.TextChoices):
 
 
 class BookItem(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    barcode = models.CharField(max_length=12, primary_key=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, db_index=True)
+    barcode = models.CharField(max_length=12, primary_key=True, db_index=True)
     is_reference_only = models.BooleanField(default=False, help_text="This book can't be issued.")
-    borrowed = models.DateField(blank=True, null=True)
+    borrowed = models.DateField(blank=True, null=True, db_index=True)
     due_date = models.DateField(blank=True, null=True)
     price = models.PositiveIntegerField()
     format = models.CharField(
@@ -65,6 +65,7 @@ class BookItem(models.Model):
         max_length=2,
         choices=BookStatus.choices,
         default=BookStatus.Available,
+        db_index=True
     )
     date_of_purchase = models.DateField(verbose_name='Purchase Date')
     publication_date = models.DateField(null=True, blank=True, verbose_name='Publication Date')

@@ -166,7 +166,7 @@ class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAP
         self.lending.return_book_item(return_date)
 
         serializer = self.serializer_class(self.lending, many=False)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         if not Account.can_return(request.user):
