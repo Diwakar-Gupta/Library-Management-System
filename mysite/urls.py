@@ -16,14 +16,41 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
+
 from rest_framework.authtoken import views
 
 admin.site.site_header = 'LMS Administrator'
 admin.site.site_title = 'LMS site admin'
 
 urlpatterns = [
-    path('', include('lms.urls')),
+
+    path('api/', include('lms.urls')),
     path('admin/', admin.site.urls),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('api/token/generate/', views.obtain_auth_token),
+
+    path('auth/', include([
+        path('login/', auth_views.LoginView.as_view(), name='login'),
+        path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+        path('api/gen-token/', views.obtain_auth_token, name='auth_token'),
+    ])),
+
+    path('', TemplateView.as_view(template_name='index.html'), name='home_page'),
+
+
 ]
+
+favicon_paths = [
+    'favicon.ico', 'asset-manifest.json', 'logo192.png', 'logo512.png', 'manifest.json'
+]
+
+urlpatterns.extend([
+    path(file_name, RedirectView.as_view(url=f'/static/{file_name}', permanent=True))
+    for file_name in favicon_paths
+])
+
+
+# map all paths for reactapp
+urlpatterns.append(
+    path('<path:res>', TemplateView.as_view(template_name='index.html')),
+)

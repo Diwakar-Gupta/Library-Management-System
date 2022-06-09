@@ -40,26 +40,26 @@ class ReservationTest(DummyDataMixin, TestCase):
     def test_reservation_list(self):
         view = reservation.AllReservations.as_view()
 
-        request = self.factory.get('/reservations/')
+        request = self.factory.get('/api/reservations/')
         force_authenticate(request, user=self.abrar)
         response = view(request)
         assert response.status_code == status.HTTP_200_OK
 
     def test_reservation_detail_auth(self):
-        response = self.client.get('/reservations/{}/'.format(self.abrar_reserv.pk))
+        response = self.client.get('/api/reservations/{}/'.format(self.abrar_reserv.pk))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         self.client.force_login(self.atul)
-        response = self.client.get('/reservations/{}/'.format(self.abrar_reserv.pk))
+        response = self.client.get('/api/reservations/{}/'.format(self.abrar_reserv.pk))
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         self.client.force_login(self.abrar)
-        response = self.client.get('/reservations/{}/'.format(self.abrar_reserv.pk))
+        response = self.client.get('/api/reservations/{}/'.format(self.abrar_reserv.pk))
         assert response.status_code == status.HTTP_200_OK
             
     def test_reservation_detail_not_found(self):
         self.client.force_login(self.abrar)
-        response = self.client.get('/reservations/878jksaf/')
+        response = self.client.get('/api/reservations/878/')
         assert response.status_code == status.HTTP_404_NOT_FOUND
     
     def test_reserve_creation(self):
@@ -70,22 +70,22 @@ class ReservationTest(DummyDataMixin, TestCase):
             }
         
         self.client.force_login(self.abrar)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         post_data['book_item'] = 'barcode123-1'
         self.client.force_login(self.atul)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
         post_data['book_item'] = 'barcode-89'
         self.client.force_login(self.librarian)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_201_CREATED
 
         post_data['book_item'] = 'barcode123'
         self.client.force_login(self.atul)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_reserve_creation_invalid_data(self):
@@ -96,7 +96,7 @@ class ReservationTest(DummyDataMixin, TestCase):
             }
         
         self.client.force_login(self.librarian)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
         post_data = {
@@ -105,12 +105,12 @@ class ReservationTest(DummyDataMixin, TestCase):
             }
 
         self.client.force_login(self.librarian)
-        response = self.client.post('/book-item/reserve/', data=post_data)
+        response = self.client.post('/api/book-item/reserve/', data=post_data)
         assert response.status_code == status.HTTP_404_NOT_FOUND
     
     def test_reservation_detail_barcode(self):
         self.client.force_login(self.abrar)
-        response = self.client.get('/reservations/barcode/{}/'.format(self.abrar_reserv.book_item.barcode))
+        response = self.client.get('/api/reservations/barcode/{}/'.format(self.abrar_reserv.book_item.barcode))
         assert response.status_code == status.HTTP_200_OK
     
     def test_cancel_reservation(self):
@@ -121,7 +121,7 @@ class ReservationTest(DummyDataMixin, TestCase):
         
         self.client.force_login(self.abrar)
         response = self.client.put(
-            f'/reservations/{pk}/',
+            f'/api/reservations/{pk}/',
             data=json.dumps(post_data),
             content_type = 'application/json'
             )

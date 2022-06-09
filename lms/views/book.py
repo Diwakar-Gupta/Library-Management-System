@@ -104,9 +104,6 @@ class BookListView(generics.ListCreateAPIView):
     @method_decorator(cache_page(60 * 15), name='dispatch')
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
 
 class BookDetail(

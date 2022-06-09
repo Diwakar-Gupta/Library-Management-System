@@ -33,23 +33,3 @@ urlpatterns = [
     ])),
 ]
 
-if False and settings.DEBUG:
-    def user_password(request):
-        response = []
-        response.append({
-            'username': 'abrar',
-            'password': 'abrar',
-        })
-        response.append({
-            'username': 'atul',
-            'password': 'atul',
-        })
-        response.append({
-            'username': 'librarian',
-            'password': 'Raju',
-        })
-        return JsonResponse(response, safe=False)
-    
-    urlpatterns.extend([
-        path('', user_password)
-    ])

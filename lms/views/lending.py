@@ -2,7 +2,7 @@ import datetime
 
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseForbidden
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.views.decorators.cache import cache_page
@@ -131,7 +131,7 @@ class AllUserLendings(LendingListBase):
         if self.lookup_field not in kwargs:
             if self.account == None:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            return redirect('/lendings/user/{}/'.format(self.account.id))
+            return redirect(resolve_url('user_lendings_list', id=self.account.id))
         return super(AllUserLendings, self).get(request, *args, **kwargs)
 
 

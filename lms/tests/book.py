@@ -1,13 +1,10 @@
-from datetime import datetime
-
+from django.shortcuts import resolve_url
 from rest_framework.test import force_authenticate
-from rest_framework.test import APITestCase
 from rest_framework import status
 
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 from django.test import Client
-from lms.models import account
 from lms.models.action import BookLending
 from lms.models.book import BookItem, BookStatus
 
@@ -28,23 +25,25 @@ class BookListTest(DummyDataMixin, TestCase):
     def test_books_list(self):
         view = book.BookListView.as_view()
 
-        request = self.factory.get('/books/')
+        url = resolve_url('book_list')
+
+        request = self.factory.get(url)
         force_authenticate(request, user=self.student)
         response = view(request)
         assert response.status_code == status.HTTP_200_OK
 
     def test_book_detail_auth(self):
-        response = self.client.get('/book/453678754/')
+        response = self.client.get('/api/book/453678754/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
         self.client.force_login(self.student)
-        response = self.client.get('/book/453678754/')
+        response = self.client.get('/api/book/453678754/')
         assert response.status_code == status.HTTP_200_OK
     
     def test_book_detail_not_found(self):
         view = book.BookDetail.as_view()
 
-        request = self.factory.get('/book/')
+        request = self.factory.get('/api/book/')
         force_authenticate(request, user=self.student)
         response = view(request, **{'isbn': '-1'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -58,7 +57,7 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123',
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book-item/issue/', data=post_data)
+        response = self.client.post('/api/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_201_CREATED
 
         book_lending = BookLending.objects.get(pk=response.data['pk'])
@@ -74,7 +73,7 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123',
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book-item/issue/', data=post_data)
+        response = self.client.post('/api/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_403_FORBIDDEN
     
     def test_issue_reference_book(self):
@@ -86,7 +85,7 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': 'barcode123-1', # reference book
             'bypass_issue_quota': 'false',
             }
-        response = self.client.post('/book-item/issue/', data=post_data)
+        response = self.client.post('/api/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_book_return_auth(self):
@@ -94,7 +93,7 @@ class BookListTest(DummyDataMixin, TestCase):
         book_lending = self.issue_book(account=self.abrar.account.id)
         assert book_lending.return_date == None
 
-        url = '/lendings/barcode/{}/'.format(book_lending.book_item.barcode)
+        url = '/api/lendings/barcode/{}/'.format(book_lending.book_item.barcode)
         post_data = {}
 
         self.client.force_login(self.atul)
@@ -123,7 +122,8 @@ class BookListTest(DummyDataMixin, TestCase):
             'book_item': book_item,
             'bypass_issue_quota': bypass_issue_quota,
             }
-        response = self.client.post('/book-item/issue/', data=post_data)
+        response = self.client.post('/api/book-item/issue/', data=post_data)
         assert response.status_code == status.HTTP_201_CREATED
         book_lending = BookLending.objects.get(account__id=account, book_item__barcode=book_item, return_date=None)
         return book_lending
+

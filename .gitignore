@@ -4,3 +4,4 @@ __pycache__
 .vscode
 mysite/settings.py
 dummy_data.json
+reactapp/
