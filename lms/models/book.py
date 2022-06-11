@@ -25,6 +25,26 @@ class Book(models.Model):
             return True
         elif hasattr(user, 'account'):
             return user.account.status == AccountStatus.Active
+    
+    # can be cached for some time
+    def count_total_bookitems(self):
+        return BookItem.objects.filter(book=self).count()
+
+    # can be cached for some time
+    def count_available_bookitems(self):
+        return BookItem.objects.filter(book=self, status=BookStatus.Available).count()
+
+    # can be cached for some time
+    def count_issued_bookitems(self):
+        return BookItem.objects.filter(book=self, status=BookStatus.Issued).count()
+
+    # can be cached for some time
+    def count_reserved_bookitems(self):
+        return BookItem.objects.filter(book=self, status=BookStatus.Reserved).count()
+
+    # can be cached for some time
+    def count_lost_bookitems(self):
+        return BookItem.objects.filter(book=self, status=BookStatus.Lost).count()
 
 
 class Rack(models.Model):

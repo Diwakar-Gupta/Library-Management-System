@@ -46,12 +46,12 @@ class UserBookSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['isbn', 'title', 'subject', 'publisher', 'language', 'numer_of_pages', 'is_available']
     
     def is_available_bookitems(self, book):
-        return BookItem.objects.filter(book=book, status=BookStatus.Available).exists()
+        return book.count_available_bookitems() > 0
 
 
 class LibrarianBookSerializer(serializers.HyperlinkedModelSerializer):
     
-    book_items = serializers.SerializerMethodField('get_total_bookitems')
+    issued = serializers.SerializerMethodField('get_issued_bookitems')
     available = serializers.SerializerMethodField('get_available_bookitems')
     reserved = serializers.SerializerMethodField('get_reserved_bookitems')
     lost = serializers.SerializerMethodField('get_lost_bookitems')
@@ -63,23 +63,23 @@ class LibrarianBookSerializer(serializers.HyperlinkedModelSerializer):
             'available',
             'reserved',
             'lost',
-            'book_items',
+            'issued',
             ]
     
-    def get_total_bookitems(self, book):
-        return BookItem.objects.filter(book=book).count()
+    def get_issued_bookitems(self, book):
+        return book.count_issued_bookitems()
     
     def get_available_bookitems(self, book):
-        return BookItem.objects.filter(book=book, status=BookStatus.Available).count()
+        return book.count_available_bookitems()
     
     def get_reserved_bookitems(self, book):
-        return BookItem.objects.filter(book=book, status=BookStatus.Reserved).count()
+        return book.count_reserved_bookitems()
     
     def get_lost_bookitems(self, book):
-        return BookItem.objects.filter(book=book, status=BookStatus.Lost).count()
+        return book.count_lost_bookitems()
 
 
-class BookListView(generics.ListCreateAPIView):
+class BookListView(generics.ListAPIView):
     serializer_class = UserBookSerializer
     permission_classes = []
     filter_fields = (
@@ -97,7 +97,7 @@ class BookListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         if Account.can_see_books(self.request.user):
-            return Book.objects.all()
+            return Book.objects.all().order_by('title')
         else:
             raise Http404
     
@@ -117,7 +117,7 @@ class BookDetail(
         return self.retrieve(request, *args, **kwargs)
     
     def get_serializer_class(self):
-        if self.request.user.is_staff:
+        if Account.is_librarian(self.request.user):
             return LibrarianBookSerializer
         return UserBookSerializer
 
