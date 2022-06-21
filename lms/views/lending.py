@@ -1,7 +1,7 @@
 import datetime
 
 from django.core.exceptions import PermissionDenied
-from django.http import Http404, HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, resolve_url
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
@@ -135,26 +135,7 @@ class AllUserLendings(LendingListBase):
         return super(AllUserLendings, self).get(request, *args, **kwargs)
 
 
-class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
-
-    lookup_field = 'barcode'
-    serializer_class = BookLendingSerializer
-
-    @cached_property
-    def lending(self):
-        lending = get_object_or_404(BookLending, return_date=None, book_item__barcode = self.kwargs[self.lookup_field])
-        if Account.can_see_all_lendings(self.request.user):
-            return lending
-        elif self.account != None and self.account.can_see_lending(lending):
-            return lending
-        else:
-            raise PermissionDenied()
-
-    def get_object(self):
-        return self.lending
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+class LendingReturnMixin():
 
     def form(self):
         form_data = self.request.POST.dict()
@@ -162,7 +143,14 @@ class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAP
         return form_data
     
     def form_valid(self, form):
+        return_info={}
         return_date = datetime.datetime.now().date()
+
+        is_correct, message =  self.lending.validate_return_data(return_info)
+
+        if not is_correct:
+            return JsonResponse({'error': message}, status=400)
+
         self.lending.return_book_item(return_date)
 
         serializer = self.serializer_class(self.lending, many=False)
@@ -175,16 +163,24 @@ class LendingBarcode(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAP
         return self.form_valid(self.form())
 
 
-class LendingDetail(AccountMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
+class LendingDetail(AccountMixin, LendingReturnMixin, mixins.RetrieveModelMixin, generics.GenericAPIView):
 
-    lookup_field = 'pk'
+    lookup_fields = ['pk', 'barcode']
     serializer_class = BookLendingSerializer
 
+    @cached_property
+    def lending(self):
+        return self.get_object()
+
     def get_object(self):
-        lending = get_object_or_404(BookLending, pk=self.kwargs['pk'])
-        if lending.account == self.account:
-            return lending
-        elif self.account.can_see_lending(lending):
+        if 'pk' in self.kwargs:
+            lending = get_object_or_404(BookLending, pk=self.kwargs['pk'])
+        elif 'barcode' in self.kwargs:
+            lending = get_object_or_404(BookLending, return_date=None, book_item__barcode = self.kwargs['barcode'])
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if Account.can_see_lending(self.request.user, lending):
             return lending
         else:
             raise PermissionDenied()

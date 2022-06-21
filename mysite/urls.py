@@ -20,6 +20,8 @@ from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 
 from rest_framework.authtoken import views
+from .views import current_user
+
 
 admin.site.site_header = 'LMS Administrator'
 admin.site.site_title = 'LMS site admin'
@@ -30,6 +32,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('auth/', include([
+        path('account/', current_user),
         path('login/', auth_views.LoginView.as_view(), name='login'),
         path('logout/', auth_views.LogoutView.as_view(), name='logout'),
         path('api/gen-token/', views.obtain_auth_token, name='auth_token'),

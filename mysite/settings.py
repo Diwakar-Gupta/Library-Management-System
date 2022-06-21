@@ -112,8 +112,8 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        # 'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
     }
 }
@@ -138,6 +138,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = '/auth/login/'
+LOGIN_REDIRECT_URL = '/'
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -174,7 +176,7 @@ if DEBUG:
     INSTALLED_APPS.append('corsheaders')
     MIDDLEWARE = [
         'corsheaders.middleware.CorsMiddleware',
-        *MIDDLEWARE
+	*MIDDLEWARE,
     ]
 
 else:

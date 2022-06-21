@@ -51,11 +51,12 @@ class Account(models.Model):
     def can_checkout(cls, user):
         return user.has_perm('lms.can_checkout_book_item')
     
-    def can_see_lending(self, lending):
-        if lending.account == self:
+    @classmethod
+    def can_see_lending(cls, user, lending):
+        if hasattr(user, 'account') and lending.account == user.account:
             return True
         else:
-            return Account.can_see_all_lendings(self.user)
+            return cls.can_see_all_reservations(user)
     
     @classmethod
     def can_see_books(self, user):

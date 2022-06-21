@@ -44,8 +44,8 @@ class AccountPermissionTest(DummyDataMixin, TestCase):
         lending = action.BookLending.check_out(abrar.account, book_item, due_date)
 
         assert True == Account.can_see_all_lendings(self.librarian)
-        assert True == self.abrar.account.can_see_lending(lending)
-        assert False == self.atul.account.can_see_lending(lending)
+        assert True == Account.can_see_lending(self.abrar, lending)
+        assert False == Account.can_see_lending(self.atul, lending)
 
     def test_reservation_permission(self):
         assert False == Account.can_reserve_book_for_others(self.abrar)

@@ -97,6 +97,9 @@ class BookLending(models.Model):
                 reserv.save()
         return book_lend
     
+    def validate_return_data(self, return_info):
+        return True, ''
+
     def return_book_item(self, return_date):
         with transaction.atomic():
             self.return_date = return_date

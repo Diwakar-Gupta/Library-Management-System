@@ -19,7 +19,7 @@ urlpatterns = [
     path('lendings/', include([
         path('', lending.AllLendings.as_view(), name='lendings_list'),
         path('<int:pk>/', lending.LendingDetail.as_view(), name='lendings_detail'),
-        path('barcode/<str:barcode>/', lending.LendingBarcode.as_view(), name='lendings_return'),
+        path('barcode/<str:barcode>/', lending.LendingDetail.as_view(), name='lendings_return'),
         path('user/', lending.AllUserLendings.as_view(), name='my_lendings_list'),
         path('user/<int:id>/', lending.AllUserLendings.as_view(), name='user_lendings_list'),
     ])),
