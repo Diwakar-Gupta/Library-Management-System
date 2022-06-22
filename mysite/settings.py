@@ -69,8 +69,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     # Pagination Settings
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,
+    'DEFAULT_PAGINATION_CLASS': 'mysite.utils.StandardResultsSetPagination',
 }
 
 ROOT_URLCONF = 'mysite.urls'
@@ -139,6 +138,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = "/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
@@ -178,7 +178,5 @@ if DEBUG:
         'corsheaders.middleware.CorsMiddleware',
 	*MIDDLEWARE,
     ]
-
 else:
     CORS_ALLOW_ALL_ORIGINS = False
-

@@ -126,7 +126,7 @@ class AllUserLendings(LendingListBase):
     def get_serializer_class(self):
         return BookLendingSerializer
 
-    @method_decorator(cache_control(private=True), name='dispatch')
+    # @method_decorator(cache_control(max_age=60*15, private=True), name='dispatch')
     def get(self, request, *args, **kwargs):
         if self.lookup_field not in kwargs:
             if self.account == None:

@@ -9,3 +9,4 @@ git reset --hard origin/build
 cd ..
 python manage.py collectstatic
 
+python manage.py test --parallel auto
