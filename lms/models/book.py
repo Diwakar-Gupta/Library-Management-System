@@ -53,6 +53,9 @@ class Rack(models.Model):
 
     def __str__(self):
         return "{} {}".format(self.location_identifier, self.number)
+    
+    class Meta:
+        unique_together = ("number", "location_identifier")
 
 
 class BookFormat(models.TextChoices):
