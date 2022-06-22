@@ -2,7 +2,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.urls import include, path
 
-from lms.views import book, lending, reservation
+from lms.views import book, lending, reservation, notification
 
 urlpatterns = [
     path('books/', book.BookListView.as_view(), name='book_list'),
@@ -31,5 +31,9 @@ urlpatterns = [
         path('user/', reservation.AllUserReservations.as_view(), name='my_reservations_list'),
         path('user/<int:id>/', reservation.AllUserReservations.as_view(), name='user_reservations_list'),
     ])),
+
+    path('notifications/', notification.AllNotification.as_view(), name='notification_list'),
+    path('notifications/<int:pk>/', notification.NotificationDetail.as_view(), name='notification_detail'),
+    
 ]
 

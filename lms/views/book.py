@@ -1,10 +1,11 @@
 import datetime
 
+from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils.functional import cached_property
-from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from lms.models import (Account, Book, BookItem, BookLending, BookStatus,
                         LibraryConfig)
@@ -99,7 +100,7 @@ class BookListView(generics.ListAPIView):
         if Account.can_see_books(self.request.user):
             return Book.objects.all().order_by('title')
         else:
-            raise Http404
+            raise PermissionDenied()
     
     @method_decorator(cache_page(60 * 15), name='dispatch')
     def get(self, request, *args, **kwargs):

@@ -4,6 +4,7 @@ from django.shortcuts import resolve_url
 from lms.models import Book, BookItem, BookStatus
 from lms.models import Account
 from lms.models import LibraryConfig
+from lms.models.notification import Notification
 
 
 class ReservationStatus(models.TextChoices):
@@ -50,14 +51,29 @@ class BookReservation(models.Model):
     def cancel_reservation(self):
         self.status = ReservationStatus.Canceled
         self.save()
+        notification_content = self.__class__.get_notification_content(self.account, self.book_item, reserved=False, cancelled=True)
+        Notification.objects.create(account=self.account, content=notification_content)
         return self
     
     @classmethod
+    def get_notification_content(cls, account, book_item, reserved=False, cancelled=False):
+        if reserved:
+            return f'Book with barcode {book_item.barcode} reserved successfully.'
+        elif cancelled:
+            return f'Reservation for Book with barcode {book_item.barcode} has been canceled.'
+        assert False, 'both reserved and cancelled cant be False'
+            
+
+    @classmethod
     def reserve_book_item(cls, account, book_item):
+
         with transaction.atomic():
             book_item.status = BookStatus.Reserved
             book_item.save()
-            return cls.objects.create(account=account, book_item=book_item, status=ReservationStatus.Waiting)
+            obj = cls.objects.create(account=account, book_item=book_item, status=ReservationStatus.Waiting)
+            notification_content = cls.get_notification_content(account, book_item, reserved=True)
+            Notification.objects.create(account=account, content=notification_content)
+            return obj
     
     class Meta:
         permissions = [
@@ -79,7 +95,7 @@ class BookLending(models.Model):
         return resolve_url('lendings_detail', pk=self.pk)
     
     @classmethod
-    def check_out(cls, account, book_item, due_date):
+    def check_out(cls, account, book_item, due_date, notification_content=''):
         
         with transaction.atomic():
             book_lend = BookLending(account=account, book_item=book_item, due_date=due_date)
@@ -90,6 +106,8 @@ class BookLending(models.Model):
             book_item.due_date = book_lend.due_date
             book_item.status = BookStatus.Issued
             book_item.save()
+
+            Notification.objects.create(account=account, content=notification_content).save()
             
             reservs = BookReservation.objects.filter(book_item=book_item, account=account).all()
             for reserv in reservs:
@@ -100,7 +118,13 @@ class BookLending(models.Model):
     def validate_return_data(self, return_info):
         return True, ''
 
-    def return_book_item(self, return_date):
+    def create_return_notification(self):
+        return f'Book with barcode={self.book_item.barcode} is returned'
+
+    def return_book_item(self, return_date, notification_content=None):
+        if not notification_content:
+            notification_content = self.create_return_notification()
+
         with transaction.atomic():
             self.return_date = return_date
             
@@ -119,6 +143,8 @@ class BookLending(models.Model):
                 from lms.models import Fine
                 fine = Fine(amount=fine_amt, lending = self)
                 fine.save()
+            
+            Notification.objects.create(account=self.account, content=notification_content).save()
         return fine_amt
 
     def get_fine(self):

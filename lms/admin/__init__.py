@@ -6,12 +6,13 @@ from lms.models import LibraryConfig
 from .account import AccountAdmin
 from .book import BookItemAdmin
 from .lending import BookLendingAdmin
+from .notification import NotificationAdmin
 
 
 admin.site.register(Book)
 admin.site.register(Rack)
 admin.site.register(BookReservation)
-admin.site.register(Notification)
+admin.site.register(Notification, NotificationAdmin)
 admin.site.register(EmailNotification)
 admin.site.register(Fine)
 admin.site.register(LibraryConfig)
