@@ -7,7 +7,7 @@ from django.utils.cache import patch_vary_headers
 from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
 from django.views.decorators.cache import cache_control, cache_page
-from django.views.decorators.vary import vary_on_headers
+
 
 from lms.models import Notification
 from lms.views.utils import AccountMixin
@@ -46,7 +46,6 @@ class AllNotification(AccountMixin, generics.ListAPIView):
         notifications = Notification.objects.filter(account=self.account)
         return notifications
 
-    @method_decorator(cache_control(max_age=60*5, private=True), name='dispatch')
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
